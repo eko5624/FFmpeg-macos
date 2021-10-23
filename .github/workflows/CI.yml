@@ -20,7 +20,10 @@ jobs:
         run: echo "::set-output name=sha::$(git rev-parse --short=7 HEAD)"        
 
       - name: Build ffmpeg
-        run: brew install ffmpeg --HEAD 
+        run: |
+          brew update && brew upgrade
+          brew install ffmpeg --HEAD 
+          
       - name: Zip binary packages
         run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip 
         working-directory: /usr/local/Cellar/ffmpeg
