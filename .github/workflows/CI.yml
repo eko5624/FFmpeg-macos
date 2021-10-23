@@ -2,72 +2,28 @@ name: CI
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '59 23 * * SUN'
+  #schedule:
+  #  - cron: '0 0 * * MON'
 
 jobs:
   build:
     runs-on: macos-11
     steps:
-      - name: Checkout mpv-player/mpv
+      - name: Checkout FFmpeg/FFmpeg
         uses: eko5624/checkout@v2
         with:
-          repository: "mpv-player/mpv"
+          repository: "FFmpeg/FFmpeg"
           fetch-depth: 0
-
-      - name: Get mpv-player/mpv last version
-        id: version
-        run: echo "::set-output name=version::$(sh version.sh)"
-
-      - name: Get last build version
-        id: last_build
-        uses: eko5624/find-latest-tag@v1.1.0
-        with:
-          repository: ${{ github.repository }}
-          releases-only: true
-        continue-on-error: true
-
-      - name: Cancel run if last build is up to date
-        if: endsWith(steps.last_build.outputs.tag, steps.version.outputs.version)
-        run: exit 1
-
-      - name: Override Xcode 13.0 if it's the default toolchain
-        run: sudo xcode-select -s "/Applications/Xcode_12.5.1.app"
-
-      - name: Install dependencies
-        run: |
-          brew update && brew upgrade
-          brew install little-cms2
-          brew install zlib 
-          brew install libass --HEAD
-          brew install luajit-openresty
-          brew install libarchive       
-          brew install libjpeg
-          brew install libcaca
-          brew install uchardet 
-          brew install ffmpeg --HEAD
-
-      - name: Build mpv
-        run: |
-          export PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig/:$PKG_CONFIG_PATH"
-          export PKG_CONFIG_PATH="/usr/local/opt/luajit-openresty/lib/pkgconfig/:$PKG_CONFIG_PATH"
-          export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig/:$PKG_CONFIG_PATH"
-          ./bootstrap.py
-          ./waf configure
-          ./waf
-        env:
-          CFLAGS: -mmacosx-version-min=10.8
-
-      - name: Bundle mpv
-        run: TOOLS/osxbundle.py build/mpv
-
-      - name: Get mpv-player/mpv last commit SHA
+        
+      - name: Get FFmpeg/FFmpeg last commit SHA
         id: sha
-        run: echo "::set-output name=sha::$(git log -n1 --format="%h")"
+        run: echo "::set-output name=sha::$(git rev-parse --short=7 HEAD)"        
 
-      - name: zip bundle
-        run: zip -r mpv-${{ steps.version.outputs.version }}.zip mpv.app
-        working-directory: build
+      - name: Build ffmpeg
+        run: brew install ffmpeg --HEAD 
+      - name: Zip binary packages
+        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip 
+        working-directory: /usr/local/Cellar/ffmpeg
 
       - name: Get current timestamp
         id: timestamp
@@ -76,9 +32,9 @@ jobs:
       - name: Create Release
         uses: eko5624/action-gh-release@v1
         with:
-          tag_name: mpv-${{ steps.version.outputs.version }}
+          tag_name: ffmpeg-${{ steps.sha.outputs.sha }}
           name: ${{ steps.timestamp.outputs.date }}
-          body: Bump to mpv-player/mpv@${{ steps.sha.outputs.sha }}
-          files: build/mpv-${{ steps.version.outputs.version }}.zip
+          body: Bump to FFmpeg/FFmpeg@${{ steps.sha.outputs.sha }}
+          files: /usr/local/Cellar/ffmpeg/ffmpeg-${{ steps.sha.outputs.sha }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
