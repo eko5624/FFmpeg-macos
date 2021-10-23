@@ -25,8 +25,7 @@ jobs:
           brew install ffmpeg --HEAD 
           
       - name: Zip binary packages
-        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip 
-        working-directory: /usr/local/Cellar/ffmpeg
+        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip /usr/local/Cellar/ffmpeg
 
       - name: Get current timestamp
         id: timestamp
@@ -38,6 +37,6 @@ jobs:
           tag_name: ffmpeg-${{ steps.sha.outputs.sha }}
           name: ${{ steps.timestamp.outputs.date }}
           body: Bump to FFmpeg/FFmpeg@${{ steps.sha.outputs.sha }}
-          files: /usr/local/Cellar/ffmpeg/ffmpeg-${{ steps.sha.outputs.sha }}.zip
+          files: ffmpeg-${{ steps.sha.outputs.sha }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
