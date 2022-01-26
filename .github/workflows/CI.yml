@@ -21,11 +21,12 @@ jobs:
 
       - name: Build ffmpeg
         run: |
-          brew update && brew upgrade
-          brew install ffmpeg --HEAD 
+          brew update 
+          brew tap homebrew-ffmpeg/ffmpeg
+          brew install homebrew-ffmpeg/ffmpeg/ffmpeg --HEAD 
           
       - name: Zip binary packages
-        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip /usr/local/Cellar/ffmpeg
+        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip /usr/local/Cellar/ffmpeg/HEAD-${{ steps.sha.outputs.sha }}
 
       - name: Get current timestamp
         id: timestamp
