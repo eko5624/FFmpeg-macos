@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: macos-11
+    env:
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1    
     steps:
       - name: Checkout FFmpeg/FFmpeg
         uses: eko5624/checkout@v3
@@ -22,22 +25,21 @@ jobs:
       - name: Build ffmpeg
         run: |
           brew update 
-          brew tap homebrew-ffmpeg/ffmpeg
-          brew install homebrew-ffmpeg/ffmpeg/ffmpeg --HEAD 
+          brew install ffmpeg --HEAD
           
       - name: Zip binary packages
-        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip /usr/local/Cellar/ffmpeg/HEAD-${{ steps.sha.outputs.sha }}
+        run: zip -r ffmpeg-${{ steps.sha.outputs.sha }}.zip /usr/local/Cellar/ffmpeg/HEAD*
 
       - name: Get current timestamp
         id: timestamp
         run: echo "::set-output name=date::$(date +%Y-%m-%d)"
 
       - name: Create Release
-        uses: eko5624/action-gh-release@v1
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ffmpeg-${{ steps.sha.outputs.sha }}
           name: ${{ steps.timestamp.outputs.date }}
           body: Bump to FFmpeg/FFmpeg@${{ steps.sha.outputs.sha }}
-          files: ffmpeg-${{ steps.sha.outputs.sha }}.zip
+          files: ffmpeg*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
